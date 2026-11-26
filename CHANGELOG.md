@@ -24,6 +24,7 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reache
 - `.env.example` documents `RATE_COLLECTOR_INTERVAL_MS`, `RATE_COLLECTOR_INTERVAL_SECONDS`,
   `RATE_COLLECTOR_JITTER_MS`, `RATE_COLLECTOR_RUN_ON_START`, `RATE_COLLECTOR_SEP38_ANCHORS` and
   `RATE_COLLECTOR_DEX_PAIRS`.
+
 ### Added — `third_party_payout` flag for SEP-6 corridors ([#644](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/644))
 
 - A `protocol: sep6` dest can declare `third_party_payout: true` when the anchor has
