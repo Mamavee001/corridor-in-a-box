@@ -24,6 +24,35 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reache
 - `.env.example` documents `RATE_COLLECTOR_INTERVAL_MS`, `RATE_COLLECTOR_INTERVAL_SECONDS`,
   `RATE_COLLECTOR_JITTER_MS`, `RATE_COLLECTOR_RUN_ON_START`, `RATE_COLLECTOR_SEP38_ANCHORS` and
   `RATE_COLLECTOR_DEX_PAIRS`.
+### Added — `third_party_payout` flag for SEP-6 corridors ([#644](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/644))
+
+- A `protocol: sep6` dest can declare `third_party_payout: true` when the anchor has
+  confirmed it lets a business withdraw to a third party, which cannot be probed (RFC 0004 §5).
+  `third_party_payout_note`, recording who confirmed it and when, is required when the flag
+  is `true`.
+- `@corridor/manifest` refuses the flag and its note on every non-SEP-6 dest (`sep31`,
+  `wallet`, `custom:<id>`, legacy dests with no `protocol`), refuses any non-boolean form
+  (object, string, `null`), and refuses an empty note. All three rules live in one check that
+  reads the raw dest, so a protocol schema can no longer drop the field silently.
+- `allowsThirdPartyPayout(corridor)` is exported for the router: `true` only for a SEP-6 dest
+  with `third_party_payout: true`. Documented in `docs/sep-coverage.md`.
+
+### Added — wallet route: settlement to a recipient account ([#647](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/647))
+
+- `WalletAdapter` in `@corridor/stellar` implements the anchor seam for a
+  `protocol: wallet` corridor. It opens an `adapter_settled` payment, submits one
+  plain Stellar payment to the recipient's account through the injected
+  `SettlementSubmitter` (so `StellarSettlementSubmitter` keeps the Horizon
+  submission and ledger confirmation), and reports `completed` only after that
+  confirmation. Concurrent or resumed confirms reuse the one submission.
+- It builds on the `protocol: wallet` manifest shape and `PaymentIntent.wallet` from
+  [#646](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/646): the recipient
+  account and memo come from `intent.wallet`, and the adapter refuses a corridor whose
+  `dest.asset` or `dest.asset_issuer` differs from what settlement pays, since a wallet
+  route cannot convert assets.
+- `tests/wallet-adapter.test.ts` drives the adapter with a stubbed submitter:
+  quote, open, ledger-gated completion, idempotent confirm, submit failure,
+  invalid recipient/memo, refund refusal, and asset, issuer and protocol mismatch refusals.
 
 ### Added — Daily rate summaries on the web app ([#596](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/596))
 
