@@ -24,6 +24,14 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reache
 - `.env.example` documents `RATE_COLLECTOR_INTERVAL_MS`, `RATE_COLLECTOR_INTERVAL_SECONDS`,
   `RATE_COLLECTOR_JITTER_MS`, `RATE_COLLECTOR_RUN_ON_START`, `RATE_COLLECTOR_SEP38_ANCHORS` and
   `RATE_COLLECTOR_DEX_PAIRS`.
+### Added — Daily rate summaries on the web app ([#596](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/596))
+
+- A `/rates` page lists the latest validated daily summary per pair and source (date, source,
+  sample count, min, P25, median, P75, max). Nothing is hardcoded: an unset or broken source
+  shows no numbers.
+- A public, cached JSON endpoint at `/api/rate-summaries` serves the same data.
+- New env var `RATE_SUMMARIES_URL` (documented in `.env.example`) points at the daily summary
+  JSON from #595.
 
 ### Added — Planner step 1: `candidates()` by destination asset and country ([#604](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/604))
 
