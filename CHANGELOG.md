@@ -9,12 +9,21 @@ follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html) once it reache
 
 ### Added — rate collector loop with 15-minute schedule, jitter, and overlap guard ([#593](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/593))
 
-- Added `RateCollectorLoop` in `@corridor/engine` implementing an always-on collection process that runs on a 15-minute schedule (RFC 0004 §3).
-- Added startup jitter support to spread out execution and avoid synchronized traffic spikes.
-- Added an overlap guard that skips runs if a previous collection cycle is still in flight.
-- Added graceful shutdown on `SIGTERM` / `SIGINT` that drains in-flight runs cleanly.
-- Added `examples/run-rate-collector.ts` entry point script with `pnpm rate:collector`.
-- Documented `RATE_COLLECTOR_INTERVAL_MS`, `RATE_COLLECTOR_INTERVAL_SECONDS`, and `RATE_COLLECTOR_JITTER_MS` in `.env.example`.
+- `RateCollectorLoop` in `@corridor/engine` runs a list of collector steps (`{ name, run }`) on a
+  15-minute schedule by default (RFC 0004 §3). Each run starts after a random jitter (default up
+  to 5 s), a tick is skipped while the previous run is still going (`skipCount`,
+  `corridor.rate_collector.skipped_overlap`), one step failing does not stop the others, and
+  `stop()` cancels a pending jitter and waits for the run in flight.
+- `pnpm rate:collector` (`examples/run-rate-collector.ts`) is the always-on process. Its steps
+  are the real collectors: `sep38_prices` calls `pollSep38Prices` (#590) for the registry's
+  attested anchors on `STELLAR_NETWORK` plus `RATE_COLLECTOR_SEP38_ANCHORS`, and `dex_trades`
+  calls `collectDexTrades` (#591) for the pairs in `config/dex-pairs.json` over the last 24 hours
+  of complete 15-minute buckets. Every sample is written to Postgres (`DATABASE_URL`, required)
+  through `PostgresRateHistoryStore.recordFlaggingOutliers`. A step with nothing configured is
+  left out. It stops cleanly on `SIGTERM` / `SIGINT`.
+- `.env.example` documents `RATE_COLLECTOR_INTERVAL_MS`, `RATE_COLLECTOR_INTERVAL_SECONDS`,
+  `RATE_COLLECTOR_JITTER_MS`, `RATE_COLLECTOR_RUN_ON_START`, `RATE_COLLECTOR_SEP38_ANCHORS` and
+  `RATE_COLLECTOR_DEX_PAIRS`.
 
 ### Added — Rate history page ([#601](https://github.com/corridor-in-a-box/corridor-in-a-box/issues/601))
 
